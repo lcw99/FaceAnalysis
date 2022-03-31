@@ -2,15 +2,18 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:face_net_authentication/pages/widgets/FacePainter.dart';
+import 'package:face_net_authentication/pages/widgets/ObjectPainter.dart';
 import 'package:face_net_authentication/pages/widgets/auth-action-button.dart';
 import 'package:face_net_authentication/pages/widgets/camera_header.dart';
 import 'package:face_net_authentication/services/camera.service.dart';
 import 'package:face_net_authentication/services/facenet.service.dart';
+import 'package:face_net_authentication/services/image_converter.dart';
 import 'package:face_net_authentication/services/ml_kit_service.dart';
 import 'package:camera/camera.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import 'package:image/image.dart' as imglib;
 
 class SignIn extends StatefulWidget {
   final CameraDescription cameraDescription;
@@ -43,6 +46,8 @@ class SignInState extends State<SignIn> {
   String imagePath;
   Size imageSize;
   Face faceDetected;
+  CameraImage faceImageDetected;
+  List<Object> objectsDetected;
 
   @override
   void initState() {
@@ -91,6 +96,7 @@ class SignInState extends State<SignIn> {
               // preprocessing the image
               setState(() {
                 faceDetected = faces[0];
+                faceImageDetected = image;
               });
 
               if (_saving) {
@@ -105,6 +111,18 @@ class SignInState extends State<SignIn> {
           }
 
           _detectingFaces = false;
+
+          List<Object> objects = await _mlKitService.getObjectsFromImage(image);
+          if (objects.length > 0) {
+            setState(() {
+              objectsDetected = objects;
+            });
+          } else {
+            setState(() {
+              objectsDetected = null;
+            });
+          }
+
         } catch (e) {
           print(e);
           _detectingFaces = false;
@@ -132,8 +150,8 @@ class SignInState extends State<SignIn> {
       await Future.delayed(Duration(milliseconds: 500));
       await _cameraService.cameraController.stopImageStream();
       await Future.delayed(Duration(milliseconds: 200));
-      XFile file = await _cameraService.takePicture();
 
+      XFile file = await _cameraService.takePicture();
       setState(() {
         _bottomSheetVisible = true;
         pictureTaked = true;
@@ -176,9 +194,24 @@ class SignInState extends State<SignIn> {
                       child: Transform(
                           alignment: Alignment.center,
                           child: FittedBox(
-                            fit: BoxFit.cover,
-                            child: Image.file(File(imagePath)),
-                          ),
+                            fit: BoxFit.fitHeight,
+                            //child: Image.file(File(imagePath)),
+                            child: Container(
+                            width: width,
+                            height: width *
+                            _cameraService
+                                .cameraController.value.aspectRatio,
+                            child: Stack(
+                                fit: StackFit.expand,
+                                children: <Widget>[
+                                  Image.memory(imglib.encodeJpg(imglib.flip(imglib.copyRotate(convertToImage(faceImageDetected), -90), imglib.Flip.horizontal))), // lcw
+                                  CustomPaint(
+                                    painter: FacePainter(
+                                        face: faceDetected,
+                                        imageSize: imageSize),
+                                  )
+                            ]),
+                          )),
                           transform: Matrix4.rotationY(mirror)),
                     );
                   } else {
@@ -204,7 +237,12 @@ class SignInState extends State<SignIn> {
                                     painter: FacePainter(
                                         face: faceDetected,
                                         imageSize: imageSize),
-                                  )
+                                  ),
+                                  CustomPaint(
+                                    painter: ObjectPainter(
+                                        detectedObjects: objectsDetected,
+                                        imageSize: imageSize),
+                                  ),
                                 ],
                               ),
                             ),

@@ -32,7 +32,7 @@ android {
         noCompress "lite"
     }
 
-    compileSdkVersion 28
+    compileSdkVersion 31
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
@@ -58,7 +58,6 @@ android {
             signingConfig signingConfigs.debug
         }
     }
-
 }
 
 flutter {

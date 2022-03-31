@@ -36,15 +36,15 @@ class FaceNetService {
       if (Platform.isAndroid) {
         delegate = GpuDelegateV2(
             options: GpuDelegateOptionsV2(
-          false,
-          TfLiteGpuInferenceUsage.fastSingleAnswer,
-          TfLiteGpuInferencePriority.minLatency,
-          TfLiteGpuInferencePriority.auto,
-          TfLiteGpuInferencePriority.auto,
+              isPrecisionLossAllowed: false,
+              inferencePreference: TfLiteGpuInferenceUsage.fastSingleAnswer,
+              inferencePriority1: TfLiteGpuInferencePriority.minLatency,
+              inferencePriority2: TfLiteGpuInferencePriority.auto,
+              inferencePriority3: TfLiteGpuInferencePriority.auto,
         ));
       } else if (Platform.isIOS) {
         delegate = GpuDelegate(
-          options: GpuDelegateOptions(true, TFLGpuDelegateWaitType.active),
+          options: GpuDelegateOptions(allowPrecisionLoss: true, waitType: TFLGpuDelegateWaitType.active),
         );
       }
       var interpreterOptions = InterpreterOptions()..addDelegate(delegate);
@@ -147,6 +147,8 @@ class FaceNetService {
 
     /// search the closest result 👓
     for (String label in data.keys) {
+      if (data[label] == null)
+        continue;
       currDist = _euclideanDistance(data[label], predictedData);
       if (currDist <= threshold && currDist < minDist) {
         minDist = currDist;

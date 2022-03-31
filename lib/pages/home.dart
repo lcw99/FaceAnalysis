@@ -113,7 +113,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           Text(
                             "FACE RECOGNITION AUTHENTICATION",
                             style: TextStyle(
-                                fontSize: 25, fontWeight: FontWeight.bold),
+                                fontSize: 20, fontWeight: FontWeight.bold),
                             textAlign: TextAlign.center,
                           ),
                           SizedBox(

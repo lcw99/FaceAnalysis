@@ -81,7 +81,7 @@ class _AuthActionButtonState extends State<AuthActionButton> {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () async {
-        try {
+//        try {
           // Ensure that the camera is initialized.
           await widget._initializeControllerFuture;
           // onShot event (takes the image and predict output)
@@ -100,10 +100,10 @@ class _AuthActionButtonState extends State<AuthActionButton> {
 
             bottomSheetController.closed.whenComplete(() => widget.reload());
           }
-        } catch (e) {
+  //      } catch (e) {
           // If an error occurs, log the error to the console.
-          print(e);
-        }
+//          print(e);
+//        }
       },
       child: Container(
         decoration: BoxDecoration(
